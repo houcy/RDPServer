@@ -15,18 +15,18 @@ public class SocketThread  extends Thread{
 	byte[] sendbytes;
 	
 	 Socket socket;
-	 DataOutputStream dos;
-	 
+	 DataOutputStream dos;	 
 	 DataInputStream dis;
 	 
-	 private static boolean  busy= false;
+	 onReceiveCallback  receiveCallback;
 	 
-	 private static boolean  sendSwicth = false;
-	 
+	 private static boolean  busy= false;	 
+	 private static boolean  sendSwicth = false; 
 	 private static boolean  socketSwicth = true ;
 	 
-	public SocketThread(String ip){	
+	public SocketThread(String ip, onReceiveCallback  receiveCallback){	
 		ipAddress = ip;
+		this.receiveCallback = receiveCallback;
 	}
 	
 	public void send(byte[] bytes){
@@ -34,7 +34,7 @@ public class SocketThread  extends Thread{
 		sendbytes = bytes;
 	}
 	
-	public boolean isBusy(){
+	public boolean isBusy(){ 
 		return busy;
 	}
 	
@@ -45,15 +45,17 @@ public class SocketThread  extends Thread{
 			dis.close();
 			socket.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 			
 	}
 	
+	 public static interface onReceiveCallback {
+	        public void onRequsetCallback(String cmd);
+	    }
+	
 	public void run() {
-			// TODO Auto-generated method stub
-			
+			// TODO Auto-generated method stub		
 		while(socketSwicth){
 			  			
 			if(socket == null)
@@ -63,8 +65,6 @@ public class SocketThread  extends Thread{
 					socket = new Socket(InetAddress.getByName(ipAddress),DEFAULT_PORT);
 					dos = new DataOutputStream(socket.getOutputStream());	
 					dis = new DataInputStream(socket.getInputStream());
-					
-					 // new ReceiveThread().start();
 												
 					} catch (IOException e) {				
 						e.printStackTrace();
@@ -86,28 +86,31 @@ public class SocketThread  extends Thread{
 						} catch (IOException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
-						}
-						
-						
+						}					
 					}   
 				}				
 			}		
 		}
-		
-		
-			
-		
-			
-		}
-			
-	
-	static class ReceiveThread extends Thread {
+				
+	}
+				
+	 class ReceiveThread extends Thread {
     	@Override
     	public void run() {
     		
-    		while(socketSwicth){
+    		while(socketSwicth){	
     			
-    			
+				try {
+					int size = dis.available();
+					byte[] data = new byte[size];  
+					dis.read(data);
+					String cmd = data.toString();
+	    			receiveCallback.onRequsetCallback(cmd) ;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}    
+				
     		}
     		
     	}

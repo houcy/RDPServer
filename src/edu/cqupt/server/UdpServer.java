@@ -15,10 +15,13 @@ public class UdpServer  extends Thread{
 	
 	String ip = null;
 	
-	Thread socketThread;
+	onUDPRequsetCallback udpRequsetCallback;
 	
-	public  UdpServer(Thread SocketThread){
-		socketThread =  SocketThread;
+	 public static interface onUDPRequsetCallback {
+	        public void onRequsetCallback(String ip);
+	    }
+	 
+	public  UdpServer(){
 	}
 
 	public void run() {
@@ -41,6 +44,8 @@ public class UdpServer  extends Thread{
 			if (null != udpPacket.getAddress()) {			
 				 ip = udpPacket.getAddress().toString().substring(1);
 				 udpSocket.close();
+				 
+				 udpRequsetCallback.onRequsetCallback(ip);
 				 break ;
 			}
 		}
